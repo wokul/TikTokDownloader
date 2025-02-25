@@ -9,7 +9,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-latest, windows-latest, macos-13 ]
+        os: [ macos-latest, windows-latest, macos-13, ubuntu-latest ]
+        include:
+          - os: ubuntu-latest
+            arch: arm64 # 指定架构为arm64
 
     steps:
       - name: 签出存储库
@@ -32,10 +35,10 @@ jobs:
           pyinstaller --icon=./static/images/TikTokDownloader.ico --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
         shell: pwsh
 
-      - name: 构建 Mac 可执行文件
-        if: runner.os == 'macOS'
+      - name: 构建 Linux 可执行文件
+        if: runner.os == 'Linux'
         run: |
-          pyinstaller --icon=./static/images/TikTokDownloader.icns --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
+          pyinstaller --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
 
       - name: 上传文件
         uses: actions/upload-artifact@v4
