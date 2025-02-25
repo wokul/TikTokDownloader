@@ -7,9 +7,14 @@ jobs:
   build:
     name: 构建于 ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest, 'self-hosted' ]
+        os: [ windows-latest, ubuntu-20.04, debian-arm64 ]
+        include:
+          - os: debian-arm64
+            dist: bookworm
+            arch: arm64
        
     steps:
       - name: 签出存储库
@@ -25,6 +30,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+        if: runner.os != 'debian-arm64'
+
+      - name: 在 Debian ARM64 上安装依赖项
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install --upgrade pip
+          pip3 install -r requirements.txt
+          pip3 install pyinstaller
+        if: runner.os == 'debian-arm64'
 
       - name: 构建 Win 可执行文件
         if: runner.os == 'Windows'
@@ -32,10 +47,10 @@ jobs:
           pyinstaller --icon=./static/images/TikTokDownloader.ico --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
         shell: pwsh
 
-      - name: 构建 Linux 可执行文件
-        if: runner.os == 'Linux'
+      - name: 构建 Linux ARM64 可执行文件
+        if: runner.os == 'debian-arm64'
         run: |
-          pyinstaller --icon=./static/images/TikTokDownloader.png --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
+          pyinstaller --add-data "static:static" --add-data "locale:locale" --add-data "templates:templates" --collect-all emoji main.py
 
       - name: 上传文件
         uses: actions/upload-artifact@v4
